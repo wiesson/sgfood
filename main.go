@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"time"
 	"os"
-	"strconv"
 )
 
 const apiUrl string = "http://altepost.sipgate.net/api.php"
