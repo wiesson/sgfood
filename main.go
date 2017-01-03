@@ -4,11 +4,14 @@ import (
 	"net/http"
 	"fmt"
 	"encoding/json"
+	"time"
+	"os"
+	"strconv"
 )
 
 const apiUrl string = "http://altepost.sipgate.net/api.php"
 
-type MealArray struct {
+type Meals struct {
 	Date   string `json:"date"`
 	Day    string `json:"day"`
 	Future bool `json:"future"`
@@ -44,8 +47,23 @@ func EmojiByType(typeOfFood string) string {
 }
 
 func main() {
-	meals := &MealArray{}
-	response, err := http.Get(apiUrl)
+	t := time.Now()
+	meals := &Meals{}
+	isoYear, isoWeek := t.ISOWeek()
+	isoWeekDay := int(t.Weekday())
+
+	if len(os.Args) > 1 {
+		if os.Args[1] == "tomorrow" {
+			isoWeekDay += 1
+		}
+
+		if os.Args[1] == "yesterday" && isoWeekDay > 0 {
+			isoWeekDay -= 1
+		}
+	}
+
+	s := fmt.Sprintf("%s?kw=%02d/%d&day=%d", apiUrl, isoWeek, isoYear, isoWeekDay)
+	response, err := http.Get(s)
 	defer response.Body.Close()
 
 	if err != nil {
