@@ -1,19 +1,23 @@
-#### Install
+### Install
 
 `go get github.com/wiesson/sgfood`
 
-#### Run
+### Run
 
 `~ ❯❯❯ sgfood`
-
-shows
 
 ```
 🐟  Fisch mit Kräuterkruste auf Parmesan Polenta und Kohlrabi Ragout
 🌸  Tofu mit Kräuterkruste auf Parmesan Polenta und Kohlrabi Ragout
 ```
 
-To lazy to read? Pipe result to TTS (OSX)
+#### Options
+
+`~ ❯❯❯ sgfood -help`
+
+#### To lazy to read? 
+
+Pipe results to TTS (OSX) and listen.
 
 `~ ❯❯❯ sgfood | say -v Anna`
 
