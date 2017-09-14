@@ -1,8 +1,21 @@
-### Install
+#### Install
 
-build `go build main.go`
+`go get github.com/wiesson/sgfood`
 
-install `go install`
+#### Run
+
+`~ ❯❯❯ sgfood`
+
+shows
+
+```
+🐟  Fisch mit Kräuterkruste auf Parmesan Polenta und Kohlrabi Ragout
+🌸  Tofu mit Kräuterkruste auf Parmesan Polenta und Kohlrabi Ragout
+```
+
+To lazy to read? Pipe result to TTS (OSX)
+
+`~ ❯❯❯ sgfood | say -v Anna`
 
 ### Emojis
 
