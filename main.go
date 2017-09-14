@@ -6,28 +6,22 @@ import (
 	"encoding/json"
 	"time"
 	"os"
+	"flag"
 )
 
-const apiUrl string = "http://altepost.sipgate.net/api.php"
-
 type Meals struct {
-	Date   string `json:"date"`
-	Day    string `json:"day"`
-	Future bool `json:"future"`
-	Meals  []Meal `json:"meals"`
+	Date    string `json:"date"`
+	Day     string `json:"day"`
+	Future  bool   `json:"future"`
+	Meals   []Meal `json:"meals"`
+	Weekday int    `json:"dayNumber"`
 }
 
 type Meal struct {
 	Id       string `json:"id"`
 	Type     string `json:"type"`
 	Name     string `json:"name"`
-	Calories int `json:"calories"`
-	// Rating   []Rating `json:"rating"`
-}
-
-type Rating struct {
-	Good int `json:"good"`
-	Bad  int `json:"bad"`
+	Calories int    `json:"calories"`
 }
 
 func EmojiByType(typeOfFood string) string {
@@ -46,37 +40,52 @@ func EmojiByType(typeOfFood string) string {
 }
 
 func main() {
+	apiBaseUrl := "http://altepost.sipgate.net/api.php"
+
 	t := time.Now()
-	meals := &Meals{}
 	isoYear, isoWeek := t.ISOWeek()
 	isoWeekDay := int(t.Weekday())
 
-	if len(os.Args) > 1 {
-		if os.Args[1] == "tomorrow" {
-			isoWeekDay += 1
-		}
+	when := flag.String("when", "today", "Which date would you like to check? Yesterday, today or tomorrow?")
+	flag.Parse()
 
-		if os.Args[1] == "yesterday" && isoWeekDay > 0 {
-			isoWeekDay -= 1
+	switch *when {
+	case "yesterday":
+		isoWeekDay += -1
+
+		if isoWeekDay < 1 {
+			fmt.Fprint(os.Stderr, "yesterday was in the last week. Can't do that :-(")
+			return
+		}
+	case "tomorrow":
+		isoWeekDay += 1
+
+		if isoWeekDay > 7 {
+			fmt.Fprint(os.Stderr, "tomorrow seems to be in the next week. Can't do that :-(")
+			return
 		}
 	}
 
-	s := fmt.Sprintf("%s?kw=%02d/%d&day=%d", apiUrl, isoWeek, isoYear, isoWeekDay)
-	response, err := http.Get(s)
+	response, err := http.Get(fmt.Sprintf("%s?kw=%02d/%d&day=%d", apiBaseUrl, isoWeek, isoYear, isoWeekDay))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "an occured during meal request: %v\n", err)
+		return
+	}
 	defer response.Body.Close()
 
+	meal := &Meals{}
+	err = json.NewDecoder(response.Body).Decode(meal)
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "the meal response could not be decoded: %v\n", err)
+		return
 	}
 
-	err = json.NewDecoder(response.Body).Decode(meals)
-
-	if err != nil {
-		panic(err)
+	if len(meal.Meals) == 0 {
+		fmt.Fprint(os.Stderr, "nothing to eat today :-(\n")
+		return
 	}
 
-	for _, value := range meals.Meals {
-		s := fmt.Sprintf("%s  %s\n", EmojiByType(value.Type), value.Name)
-		fmt.Print(s)
+	for _, value := range meal.Meals {
+		fmt.Printf("%s  %s\n", EmojiByType(value.Type), value.Name)
 	}
 }
